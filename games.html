@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحدي قواعد البيانات</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Tajawal', sans-serif; }
+    .glow-green { box-shadow: 0 0 25px rgba(16, 185, 129, 0.4); }
+    .glow-red { box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); }
+    .glow-gold { box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes confetti-fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(60px) rotate(360deg); opacity: 0; } }
+    .anim-slide { animation: slideUp 0.5s ease-out forwards; }
+    .anim-delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .anim-delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .anim-delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .anim-delay-4 { animation-delay: 0.4s; opacity: 0; }
+    .option-btn { transition: all 0.25s ease; }
+    .option-btn:hover { transform: translateY(-2px); }
+    .progress-fill { transition: width 0.6s ease; }
+    .confetti-piece { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confetti-fall 1.5s ease-out forwards; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0f1729',
+            deepblue: '#1a2744',
+            accent: '#6366f1',
+            gold: '#fbbf24',
+            mint: '#10b981'
+          }
+        }
+      }
+    }
+  </script>
+ </head>
+ <body class="h-full bg-navy text-white overflow-auto">
+  <div id="app" class="h-full w-full flex flex-col items-center justify-center p-4" style="min-height: 100%;">
+   
+   <div id="screen-welcome" class="w-full max-w-lg text-center">
+    <div class="mb-6 anim-slide">
+     <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-5xl mb-4 glow-gold">
+      🗄️
+     </div>
+     <h1 id="title-el" class="text-3xl font-900 bg-gradient-to-l from-gold to-amber-300 bg-clip-text text-transparent font-bold">تحدي قواعد البيانات</h1>
+     <p id="welcome-el" class="text-gray-400 mt-2 text-lg">اختبر معلوماتك في عالم قواعد البيانات!</p>
+    </div>
+    <div class="space-y-3 anim-slide anim-delay-2">
+     <div class="bg-deepblue rounded-xl p-4 border border-white/10 text-right">
+      <p class="text-gray-300 text-sm leading-relaxed">🎯 أجب عن <strong class="text-gold">10 أسئلة</strong> متنوعة حول قواعد البيانات</p>
+      <p class="text-gray-300 text-sm leading-relaxed mt-1">⏱️ لديك <strong class="text-gold">20 ثانية</strong> لكل سؤال</p>
+      <p class="text-gray-300 text-sm leading-relaxed mt-1">⭐ اجمع أكبر عدد من النقاط!</p>
+     </div>
+     <button onclick="startGame()" class="w-full py-4 rounded-xl bg-gradient-to-l from-accent to-purple-600 font-bold text-lg hover:opacity-90 transition-opacity anim-slide anim-delay-3"> ابدأ التحدي 🚀 </button>
+     
+     <div id="stats-bar" class="bg-deepblue rounded-xl p-3 border border-white/10 flex justify-around text-center anim-slide anim-delay-4">
+      <div>
+       <p class="text-xl font-bold text-gold" id="stat-total">0</p>
+       <p class="text-xs text-gray-500">محاولات</p>
+      </div>
+      <div>
+       <p class="text-xl font-bold text-mint" id="stat-best">0</p>
+       <p class="text-xs text-gray-500">أفضل نتيجة</p>
+      </div>
+      <div>
+       <p class="text-xl font-bold text-accent" id="stat-correct">0</p>
+       <p class="text-xs text-gray-500">إجابات صحيحة</p>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="screen-game" class="w-full max-w-lg hidden">
+    <div class="flex items-center justify-between mb-4">
+     <span class="text-sm text-gray-400">السؤال <span id="q-num" class="text-gold font-bold">1</span>/10</span>
+     <div class="flex items-center gap-2">
+      <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i> 
+      <span id="timer-text" class="font-bold text-gold text-lg">20</span>
+     </div>
+     <span class="text-sm font-bold text-accent">النقاط: <span id="score-text">0</span></span>
+    </div>
+    <div class="w-full bg-deepblue rounded-full h-2 mb-6">
+     <div id="progress-bar" class="progress-fill h-2 bg-gradient-to-l from-accent to-mint rounded-full" style="width:10%"></div>
+    </div>
+    <div id="question-card" class="bg-deepblue rounded-2xl p-6 border border-white/10 mb-4">
+     <div class="flex items-start gap-3 mb-1">
+      <span id="q-category" class="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">SQL</span>
+     </div>
+     <p id="q-text" class="text-lg font-bold mt-3 leading-relaxed"></p>
+    </div>
+    <div id="options-container" class="space-y-3"></div>
+    <div id="feedback-box" class="hidden mt-4 rounded-xl p-4 text-center">
+     <p id="feedback-text" class="font-bold text-lg"></p>
+     <p id="feedback-explain" class="text-sm mt-1 opacity-80"></p>
+    </div>
+   </div>
+
+   <div id="screen-result" class="w-full max-w-lg text-center hidden relative overflow-hidden">
+    <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
+    <div class="relative z-10">
+     <div id="result-icon" class="text-6xl mb-4"></div>
+     <h2 id="result-title" class="text-2xl font-900 mb-2"></h2>
+     <p id="result-subtitle" class="text-gray-400 mb-6"></p>
+     <div class="bg-deepblue rounded-2xl p-6 border border-white/10 mb-6">
+      <p class="text-5xl font-900 text-gold mb-2 font-bold" id="result-score">0</p>
+      <p class="text-gray-400">من أصل 100 نقطة</p>
+      <div class="flex justify-center gap-8 mt-4">
+       <div>
+        <p class="text-2xl font-bold text-mint" id="result-correct">0</p>
+        <p class="text-xs text-gray-500">صحيح</p>
+       </div>
+       <div>
+        <p class="text-2xl font-bold text-red-400" id="result-wrong">0</p>
+        <p class="text-xs text-gray-500">خطأ</p>
+       </div>
+      </div>
+     </div>
+     <button onclick="showWelcome()" class="w-full py-4 rounded-xl bg-gradient-to-l from-accent to-purple-600 font-bold text-lg hover:opacity-90 transition-opacity"> حاول مرة أخرى 🔄 </button>
+    </div>
+   </div>
+  </div>
+
+<script>
+const questions = [
+  { id:"q1", cat:"مفاهيم", q:"ما هو نظام إدارة قواعد البيانات (DBMS)؟", opts:["برنامج لإنشاء وإدارة قواعد البيانات","لغة برمجة","نظام تشغيل","متصفح ويب"], ans:0, explain:"DBMS هو برنامج يتيح إنشاء وتنظيم وإدارة البيانات بكفاءة" },
+  { id:"q2", cat:"SQL", q:"أي أمر SQL يُستخدم لاسترجاع البيانات من جدول؟", opts:["INSERT","UPDATE","SELECT","DELETE"], ans:2, explain:"SELECT هو الأمر المستخدم لاسترجاع وعرض البيانات" },
+  { id:"q3", cat:"مفاتيح", q:"ما هو المفتاح الأساسي (Primary Key)؟", opts:["حقل يقبل القيم المكررة","حقل يُعرّف كل سجل بشكل فريد","حقل اختياري","حقل للربط فقط"], ans:1, explain:"المفتاح الأساسي يضمن عدم تكرار السجلات في الجدول" },
+  { id:"q4", cat:"SQL", q:"ما وظيفة الأمر WHERE في SQL؟", opts:["إنشاء جدول جديد","تصفية النتائج بشرط محدد","حذف قاعدة بيانات","ترتيب البيانات"], ans:1, explain:"WHERE يُستخدم لتحديد شروط تصفية البيانات المسترجعة" },
+  { id:"q5", cat:"تصميم", q:"ما هو التطبيع (Normalization)؟", opts:["حذف البيانات","تقليل تكرار البيانات وتنظيمها","تشفير البيانات","نسخ البيانات احتياطياً"], ans:1, explain:"التطبيع يُقلل التكرار ويحسّن تنظيم البيانات في الجداول" },
+  { id:"q6", cat:"علاقات", q:"ما نوع العلاقة بين الطالب والمواد الدراسية؟", opts:["واحد لواحد","واحد لمتعدد","متعدد لمتعدد","لا توجد علاقة"], ans:2, explain:"طالب يدرس عدة مواد، ومادة يدرسها عدة طلاب" },
+  { id:"q7", cat:"SQL", q:"أي أمر يُستخدم لإضافة سجل جديد؟", opts:["SELECT","INSERT INTO","UPDATE","ALTER"], ans:1, explain:"INSERT INTO يُضيف سجلاً جديداً إلى الجدول" },
+  { id:"q8", cat:"مفاهيم", q:"ما هو الفرق بين DELETE و DROP؟", opts:["لا فرق بينهما","DELETE يحذف سجلات، DROP يحذف الجدول كاملاً","DROP أسرع فقط","DELETE يحذف الجدول"], ans:1, explain:"DELETE يحذف صفوفاً محددة، بينما DROP يحذف الجدول بالكامل" },
+  { id:"q9", cat:"مفاتيح", q:"ما هو المفتاح الأجنبي (Foreign Key)؟", opts:["مفتاح للتشفير","حقل يربط بين جدولين","اسم الجدول","نوع بيانات"], ans:1, explain:"المفتاح الأجنبي يُنشئ علاقة بين جدولين مختلفين" },
+  { id:"q10", cat:"SQL", q:"ما وظيفة ORDER BY؟", opts:["تجميع البيانات","تصفية البيانات","ترتيب نتائج الاستعلام","إنشاء فهرس"], ans:2, explain:"ORDER BY يُرتّب النتائج تصاعدياً أو تنازلياً" }
+];
+
+let currentQ = 0, score = 0, correctCount = 0, timer = null, timeLeft = 20;
+let answered = false;
+
+// وظائف لإدارة البيانات محلياً (بدلاً من SDK)
+function saveResultLocally(isCorrect) {
+    let stats = JSON.parse(localStorage.getItem('db_quiz_stats') || '{"attempts":0, "bestScore":0, "totalCorrect":0}');
+    if (currentQ === 0) stats.attempts++; 
+    if (isCorrect) stats.totalCorrect++;
+    
+    // حفظ أفضل نتيجة عند نهاية اللعبة فقط
+    if (currentQ === questions.length - 1) {
+        if (score > stats.bestScore) stats.bestScore = score;
+    }
+    
+    localStorage.setItem('db_quiz_stats', JSON.stringify(stats));
+    updateStatsDisplay();
+}
+
+function updateStatsDisplay() {
+    let stats = JSON.parse(localStorage.getItem('db_quiz_stats') || '{"attempts":0, "bestScore":0, "totalCorrect":0}');
+    document.getElementById('stat-total').textContent = stats.attempts;
+    document.getElementById('stat-best').textContent = stats.bestScore;
+    document.getElementById('stat-correct').textContent = stats.totalCorrect;
+}
+
+function showScreen(name) {
+  ['welcome','game','result'].forEach(s => {
+    document.getElementById('screen-' + s).classList.toggle('hidden', s !== name);
+  });
+}
+
+function startGame() {
+  currentQ = 0; score = 0; correctCount = 0;
+  showScreen('game');
+  loadQuestion();
+}
+
+function showWelcome() {
+  updateStatsDisplay();
+  showScreen('welcome');
+}
+
+function loadQuestion() {
+  answered = false;
+  timeLeft = 20;
+  const q = questions[currentQ];
+  document.getElementById('q-num').textContent = currentQ + 1;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-category').textContent = q.cat;
+  document.getElementById('score-text').textContent = score;
+  document.getElementById('progress-bar').style.width = ((currentQ + 1) * 10) + '%';
+  document.getElementById('timer-text').textContent = timeLeft;
+  document.getElementById('feedback-box').classList.add('hidden');
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn w-full text-right p-4 rounded-xl border border-white/10 bg-deepblue/80 hover:border-accent/50 font-medium anim-slide anim-delay-' + (i + 1);
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  if(window.lucide) lucide.createIcons();
+  
+  clearInterval(timer);
+  timer = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer-text').textContent = timeLeft;
+    if (timeLeft <= 5) document.getElementById('timer-text').classList.add('text-red-400');
+    else document.getElementById('timer-text').classList.remove('text-red-400');
+    if (timeLeft <= 0) { clearInterval(timer); selectAnswer(-1); }
+  }, 1000);
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timer);
+
+  const q = questions[currentQ];
+  const isCorrect = idx === q.ans;
+  const btns = document.getElementById('options-container').children;
+
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].onclick = null;
+    if (i === q.ans) {
+      btns[i].classList.add('glow-green');
+      btns[i].style.borderColor = '#10b981';
+      btns[i].style.backgroundColor = 'rgba(16,185,129,0.15)';
+    } else if (i === idx && !isCorrect) {
+      btns[i].classList.add('glow-red');
+      btns[i].style.borderColor = '#ef4444';
+      btns[i].style.backgroundColor = 'rgba(239,68,68,0.15)';
+    }
+  }
+
+  if (isCorrect) { score += 10; correctCount++; }
+  saveResultLocally(isCorrect);
+
+  const fb = document.getElementById('feedback-box');
+  fb.classList.remove('hidden');
+  fb.style.backgroundColor = isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+  fb.style.border = isCorrect ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+  document.getElementById('feedback-text').textContent = isCorrect ? '✅ إجابة صحيحة!' : (idx === -1 ? '⏱️ انتهى الوقت!' : '❌ إجابة خاطئة');
+  document.getElementById('feedback-text').style.color = isCorrect ? '#10b981' : '#ef4444';
+  document.getElementById('feedback-explain').textContent = q.explain;
+
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ < questions.length) loadQuestion();
+    else showResult();
+  }, 2000);
+}
+
+function showResult() {
+  showScreen('result');
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-correct').textContent = correctCount;
+  document.getElementById('result-wrong').textContent = 10 - correctCount;
+
+  const pct = score / 100;
+  let icon, title, sub;
+  if (pct >= 0.8) { icon = '🏆'; title = 'ممتاز! أنت خبير قواعد بيانات!'; sub = 'أداء رائع، استمر!'; spawnConfetti(); }
+  else if (pct >= 0.5) { icon = '👏'; title = 'أداء جيد!'; sub = 'يمكنك التحسن أكثر، حاول مجدداً'; }
+  else { icon = '💪'; title = 'لا تستسلم!'; sub = 'راجع المفاهيم وحاول مرة أخرى'; }
+
+  document.getElementById('result-icon').textContent = icon;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-subtitle').textContent = sub;
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#fbbf24','#6366f1','#10b981','#ef4444','#ec4899'];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.top = Math.random() * 40 + '%';
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 0.8 + 's';
+    container.appendChild(piece);
+  }
+}
+
+// تشغيل عند التحميل
+window.onload = () => {
+    updateStatsDisplay();
+    if(window.lucide) lucide.createIcons();
+};
+</script>
+</body>
+</html>
